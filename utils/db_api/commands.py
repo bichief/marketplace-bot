@@ -1,16 +1,10 @@
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from loader import bot
-from utils.db_api.base import async_session
-from utils.db_api.classes_for_cmd import UserAdd
+from utils.db_api.base import get_session
+from utils.db_api.schemas.user import User
 
 
-async def add_user(telegram_id, username):
-    try:
-        async with async_session() as session:
-            async with session.begin():
-                user = UserAdd(session)
-                return await user.add_user(telegram_id, username)
-    except IntegrityError:
-        await bot.send_message(telegram_id, 'Вы уже авторизовались в боте.')
-        return True
+async def add_user(telegram_id, username, session: AsyncSession):
+    user = User(telegram_id=telegram_id, username=username)
+    session.add(user)
+    await session.commit()

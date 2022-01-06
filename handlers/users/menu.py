@@ -9,8 +9,10 @@ from keyboards.inline.history import history
 from loader import dp, bot
 
 
+
 @dp.message_handler(Command('menu'))
 async def menu_cmd(message: types.Message):
+
     await message.answer('На данный момент вы находитесь в меню.\n\n'
                          'Выберите на клавиатуре то, в чем вы заинтересованы', reply_markup=menu)
 

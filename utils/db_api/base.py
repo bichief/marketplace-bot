@@ -1,20 +1,26 @@
-from aiogram import Dispatcher
-from sqlalchemy.orm import declarative_base, sessionmaker
 import logging
+
+from aiogram import Dispatcher
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
 from data import config
 
 Base = declarative_base()
 
-engine = create_async_engine(config.DB_LINK, future=True)
-async_session = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+engine = create_async_engine(config.DB_LINK, echo=True, future=True)
 
-async def connect_db(dispatcher: Dispatcher):
-    print("Connection to PostgreSQL")
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    )
 
+async def init_db():
     async with engine.begin() as conn:
+        # await conn.run_sync(SQLModel.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
+
+
+async def get_session() -> AsyncSession:
+    async_session = sessionmaker(
+        engine, class_=AsyncSession, expire_on_commit=False
+    )
+    async with async_session() as session:
+        yield session
