@@ -9,18 +9,19 @@ from data import config
 
 Base = declarative_base()
 
-engine = create_async_engine(config.DB_LINK, echo=True, future=True)
-
+engine = create_async_engine(
+        config.DB_LINK,
+        echo=True,
+    )
 
 async def init_db():
     async with engine.begin() as conn:
-        # await conn.run_sync(SQLModel.metadata.drop_all)
+        # await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
-
-async def get_session() -> AsyncSession:
+async def get_session():
     async_session = sessionmaker(
-        engine, class_=AsyncSession, expire_on_commit=False
+        engine, expire_on_commit=False, class_=AsyncSession
     )
     async with async_session() as session:
         yield session
