@@ -6,22 +6,20 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from data import config
+from loader import bot
 
 Base = declarative_base()
 
 engine = create_async_engine(
-        config.DB_LINK,
-        echo=True,
-    )
+    config.DB_LINK,
+    future=True
+)
 
 async def init_db():
-    async with engine.begin() as conn:
-        # await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
-
-async def get_session():
-    async_session = sessionmaker(
-        engine, expire_on_commit=False, class_=AsyncSession
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     )
-    async with async_session() as session:
-        yield session
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)

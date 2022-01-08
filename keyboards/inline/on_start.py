@@ -1,5 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+
 on_start = InlineKeyboardMarkup(row_width=1,
                                 inline_keyboard=[
                                     [

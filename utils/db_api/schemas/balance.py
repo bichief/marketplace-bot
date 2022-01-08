@@ -7,7 +7,7 @@ class Balance(Base):
     __tablename__ = 'balance'
 
     id = Column(Integer(), primary_key=True)
-    user_id = Column(Integer(), ForeignKey('users.id'))
-    amount = Column(Integer(), default='0')
+    telegram_id = Column(Integer(), ForeignKey('users.telegram_id'), unique=True)
+    amount = Column(Integer(), default=0)
 
     query: sql.Select
