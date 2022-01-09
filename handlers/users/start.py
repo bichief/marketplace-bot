@@ -9,14 +9,14 @@ from keyboards.inline.on_start import on_start
 from keyboards.inline.sub_channel import sub_channel
 from loader import dp, bot
 from utils.check_member import check_member
-from utils.db_api.commands import add_user, create_balance, get_category
+import utils.db_api.commands.user as db
 
 from utils.delete_message import delete_message
 
 
 @dp.message_handler(CommandStart())
 async def bot_start(message: types.Message):
-    state = await add_user(telegram_id=message.chat.id, username=f'@{message.from_user.username}')
+    state = await db.add_user(telegram_id=message.chat.id, username=f'@{message.from_user.username}')
     if state is True:
         await message.answer('Вы уже авторизовались')
     else:
@@ -28,20 +28,22 @@ async def bot_start(message: types.Message):
                              reply_markup=on_start)
 
 
-# @dp.callback_query_handler()
-# async def get_rules(call: types.CallbackQuery):
-#     if 'rules' in call.data:
-#         await bot.edit_message_text(
-#             text='правила придумать потом',
-#             chat_id=call.message.chat.id,
-#             message_id=call.message.message_id,
-#             reply_markup=sub_channel
-#         )
-#     if 'check_sub' in call.data:
-#         state = await check_member(user_id=call.message.chat.id)
-#         if state is True:
-#             await bot.delete_message(call.message.chat.id, message_id=call.message.message_id)
-#             await call.answer('Ваша подписка найдена!')
-#             await menu_cmd(call.message)
-#         else:
-#             await bot.send_message(call.message.chat.id, 'Ваша подписка не найдена!')
+@dp.callback_query_handler(text='rules')
+async def get_rules(call: types.CallbackQuery):
+    await bot.edit_message_text(
+        text='правила придумать потом',
+        chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        reply_markup=sub_channel
+    )
+
+
+@dp.callback_query_handler(text='check_sub')
+async def check_sub(call: types.CallbackQuery):
+    state = await check_member(user_id=call.message.chat.id)
+    if state is True:
+        await bot.delete_message(call.message.chat.id, message_id=call.message.message_id)
+        await call.answer('Ваша подписка найдена!')
+        await menu_cmd(call.message)
+    else:
+        await call.answer(call.message.chat.id, 'Ваша подписка не найдена!')

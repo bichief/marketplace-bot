@@ -15,6 +15,11 @@ engine = create_async_engine(
     future=True
 )
 
+async_sessionmaker = sessionmaker(
+    engine, expire_on_commit=False, class_=AsyncSession
+)
+
+
 async def init_db():
     logging.basicConfig(
         level=logging.INFO,

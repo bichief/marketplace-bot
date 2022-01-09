@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from utils.db_api.commands import get_name
+import utils.db_api.commands.goods as db
 
 
 async def titles(rows):
@@ -9,7 +9,7 @@ async def titles(rows):
 
     for row in rows:
         row = row.split(':')
-        title = await get_name(row[0])
+        title = await db.get_name(row[0])
 
         btn = InlineKeyboardButton(text=f'{row[1]}', callback_data=f'id_{title}')
 

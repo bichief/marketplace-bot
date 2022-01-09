@@ -1,31 +1,33 @@
 import time
+import random
 
 from aiogram import types
-from aiogram.dispatcher.filters import Command
+from aiogram.dispatcher.filters import Command, Text
 from aiogram.types import ChatActions
 
 from keyboards.default.menu import menu
+from keyboards.inline.buy_goods import buy_goods
 from keyboards.inline.history import history
 from keyboards.inline.products import markup
-from keyboards.inline.sub_channel import sub_channel
 from keyboards.inline.titles import titles
 from loader import dp, bot
-from utils.check_member import check_member
-from utils.db_api.commands import update_state, get_info, create_balance, get_balance, get_category, check_rows, \
-    get_title
+
+import utils.db_api.commands.goods as db
+import utils.db_api.commands.balance as bl
+import utils.db_api.commands.user as us
 
 
-@dp.message_handler(Command('menu'))
+@dp.message_handler(Command('set_menu'))
 async def menu_cmd(message: types.Message):
-    await update_state(telegram_id=message.chat.id)
-    await create_balance(telegram_id=message.chat.id)
+    await us.update_state(telegram_id=message.chat.id)
+    await bl.create_balance(telegram_id=message.chat.id)
     await message.answer('На данный момент вы находитесь в меню.\n\n'
                          'Выберите на клавиатуре то, в чем вы заинтересованы', reply_markup=menu)
 
 
 @dp.message_handler(text='Товары')
 async def goods(message: types.Message):
-    if await check_rows() is True:
+    if await db.check_rows() is True:
         await message.answer('К сожалению, категории пока недоступны.')
     else:
         keyboard = await markup()
@@ -36,8 +38,8 @@ async def goods(message: types.Message):
 async def user_profile(message: types.Message):
     await bot.send_chat_action(message.chat.id, ChatActions.TYPING)
     time.sleep(1.2)
-    data = await get_info(telegram_id=message.chat.id)
-    balance = await get_balance(telegram_id=message.chat.id)
+    data = await us.get_info(telegram_id=message.chat.id)
+    balance = await bl.get_balance(telegram_id=message.chat.id)
     await message.answer('<b>Ваш профиль.</b>\n\n'
                          f'ID: {data[0]} \n'
                          f'Баланс: <code>{balance} RUB</code>\n'
@@ -65,36 +67,53 @@ async def rules(message: types.Message):
     pass  # выдает правила
 
 
-@dp.callback_query_handler()
-async def get_goods(call: types.CallbackQuery):
-    if 'rules' in call.data:
-        await bot.edit_message_text(
-            text='правила придумать потом',
-            chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            reply_markup=sub_channel
-        )
-    if 'check_sub' in call.data:
-        state = await check_member(user_id=call.message.chat.id)
-        if state is True:
-            await bot.delete_message(call.message.chat.id, message_id=call.message.message_id)
-            await call.answer('Ваша подписка найдена!')
-            await menu_cmd(call.message)
-        else:
-            await bot.send_message(call.message.chat.id, 'Ваша подписка не найдена!')
+@dp.callback_query_handler(Text(startswith='category_'))
+async def get_category(call: types.CallbackQuery):
+    regex = call.data.split('_')
+    rows = await db.get_title(regex[1])
 
-    if 'category_' in call.data:
-        regex = call.data.split('_')
-        rows = await get_title(regex[1])
+    if len(rows) == 0:
+        await bot.send_message(call.message.chat.id, f'К сожалению товары с категорией {regex[1]} отсутствуют :(')
+    else:
+        keyboard = await titles(rows)
+        await bot.edit_message_text('Товары!', chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                    reply_markup=keyboard)
 
-        if len(rows) == 0:
-            await bot.send_message(call.message.chat.id, f'К сожалению товары с категорией {regex[1]} отсутствуют :(')
-        else:
-            keyboard = await titles(rows)
-            await bot.edit_message_text('Товары!', chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                        reply_markup=keyboard)
-    elif 'menu' in call.data:
-        keyboard = await markup()
-        await call.message.answer('Доступные категории товаров:', reply_markup=keyboard)
-        await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
 
+@dp.callback_query_handler(Text(startswith='id_'))
+async def get_good(call: types.CallbackQuery):
+    regex = call.data.split('_')
+    rows = await db.get_goods_id(regex[1])
+    goods_id = random.choice(rows)
+
+    info = await db.get_info_goods(goods_id)
+
+    if info is None:
+        await bot.send_message(call.message.chat.id, 'К сожалению, товар не найден.')
+    else:
+        row = info.split(':')
+
+        ID = row[3]
+        SUM = row[2]
+
+        keyboard = await buy_goods(ID, SUM)
+
+        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                    text=f'Оформление заказа номер - {random.randint(1000, 1000000)}\n\n'
+                                         f'Наименование: {row[0]}\n'
+                                         f'Описание: {row[1]}\n\n'
+                                         f'Цена: {row[2]} RUB\n', reply_markup=keyboard)
+
+
+@dp.callback_query_handler(Text(equals='menu'))
+async def go_back(call: types.CallbackQuery):
+    keyboard = await markup()
+    await call.message.answer('Доступные категории товаров:', reply_markup=keyboard)
+    await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+
+
+@dp.callback_query_handler(Text(equals='back'))
+async def go_category(call: types.CallbackQuery):
+    keyboard = await markup()
+    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                text='Доступные категории товаров:', reply_markup=keyboard)
