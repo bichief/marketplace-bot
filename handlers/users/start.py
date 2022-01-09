@@ -12,9 +12,11 @@ from utils.check_member import check_member
 import utils.db_api.commands.user as db
 
 from utils.delete_message import delete_message
+from utils.misc import rate_limit
 
 
 @dp.message_handler(CommandStart())
+@rate_limit(2, 'start')
 async def bot_start(message: types.Message):
     state = await db.add_user(telegram_id=message.chat.id, username=f'@{message.from_user.username}')
     if state is True:

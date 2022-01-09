@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
 from utils.db_api.base import async_sessionmaker
@@ -22,3 +22,10 @@ async def get_balance(telegram_id):
 
         for row in result.scalars():
             return row.amount
+
+async def update_balance(telegram_id, amount: int):
+    async with async_sessionmaker() as session:
+        balance = update(Balance).where(Balance.telegram_id == telegram_id).values(amount=amount)
+
+        await session.execute(balance)
+        await session.commit()

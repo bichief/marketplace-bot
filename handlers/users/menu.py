@@ -5,6 +5,7 @@ from aiogram import types
 from aiogram.dispatcher.filters import Command, Text
 from aiogram.types import ChatActions
 
+from data import config
 from keyboards.default.menu import menu
 from keyboards.inline.buy_goods import buy_goods
 from keyboards.inline.history import history
@@ -17,7 +18,7 @@ import utils.db_api.commands.balance as bl
 import utils.db_api.commands.user as us
 
 
-@dp.message_handler(Command('set_menu'))
+@dp.message_handler(Command('set_menu'), user_id=config.ADMINS)
 async def menu_cmd(message: types.Message):
     await us.update_state(telegram_id=message.chat.id)
     await bl.create_balance(telegram_id=message.chat.id)
@@ -117,3 +118,44 @@ async def go_category(call: types.CallbackQuery):
     keyboard = await markup()
     await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                 text='Доступные категории товаров:', reply_markup=keyboard)
+
+@dp.callback_query_handler(Text(startswith='buy_'))
+async def buy_product(call: types.CallbackQuery):
+    regex = call.data.split('_')
+
+    good_id = regex[1]
+
+    summa = int(regex[2])
+
+    balance = await bl.get_balance(telegram_id=call.message.chat.id)
+
+    if int(balance) >= int(summa):
+
+        data = await db.get_data_goods(good_id)
+
+        info = await db.get_info_goods(good_id)
+        rows = info.split(':')
+        amount = rows[4]
+
+        new_balance = balance - summa
+        await bl.update_balance(telegram_id=call.message.chat.id, amount=new_balance)
+        new_amount = int(amount) - 1
+        await db.update_amount(good_id, amount=new_amount)
+
+        await bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text='Покупка успешно проведена!\n\n'
+                 f'Данные: {data}\n'
+                 f'Ваш баланс - {new_balance} RUB'
+        )
+
+    else:
+        await bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text='Недостаточно средств на балансе.\n'
+                 f'Для покупки вам не хватает {summa - balance} RUB\n'
+                 f'Чтобы пополнить баланс, перейдите в меню.'
+        )
+

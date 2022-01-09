@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
 from utils.db_api.base import async_sessionmaker
@@ -86,3 +86,18 @@ async def get_info_goods(good_id):
 
         for row in result.scalars():
             return f'{row.title}:{row.description}:{row.price}:{row.id}:{row.amount}'
+
+async def get_data_goods(good_id):
+    async with async_sessionmaker() as session:
+        data = select(Goods).where(Goods.id == int(good_id))
+
+        result = await session.execute(data)
+        for row in result.scalars():
+            return row.data
+
+async def update_amount(good_id, amount: int):
+    async with async_sessionmaker() as session:
+        new_amount = update(Goods).where(Goods.id == int(good_id)).values(amount=amount)
+
+        await session.execute(new_amount)
+        await session.commit()
