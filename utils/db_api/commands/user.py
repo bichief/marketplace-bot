@@ -1,8 +1,9 @@
-from sqlalchemy import update, select
+from sqlalchemy import update, select, func
 from sqlalchemy.exc import IntegrityError
 
 from utils.db_api.base import async_sessionmaker
-from utils.db_api.schemas.user import User
+from utils.db_api.models.balance import Balance
+from utils.db_api.models.user import User
 
 
 async def add_user(telegram_id, username):
@@ -34,4 +35,31 @@ async def get_info(telegram_id):
             array.append(row.id)
             data = str(row.created_at).split(' ')[0]
             array.append(data)
+        return array
+
+
+async def get_all_users():
+
+    async with async_sessionmaker() as session:
+        counter = select(func.count('*')).select_from(User)
+        result = await session.execute(counter)
+        for row in result:
+            return row[0]
+
+async def get_users_for_txt():
+    array = []
+    async with async_sessionmaker() as session:
+        sql = select(User)
+        result = await session.execute(sql)
+        for row in result.scalars():
+            array.append(f'{row.telegram_id} - {row.username}')
+        return array
+
+async def get_all_users_mailing():
+    array = []
+    async with async_sessionmaker() as session:
+        sql = select(User)
+        result = await session.execute(sql)
+        for row in result.scalars():
+            array.append(row.telegram_id)
         return array

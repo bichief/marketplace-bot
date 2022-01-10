@@ -6,6 +6,7 @@ from aiogram.dispatcher.filters import Command, Text
 from aiogram.types import ChatActions
 
 from data import config
+from handlers.users.balance import balance_cmd
 from keyboards.default.menu import menu
 from keyboards.inline.buy_goods import buy_goods
 from keyboards.inline.history import history
@@ -16,6 +17,7 @@ from loader import dp, bot
 import utils.db_api.commands.goods as db
 import utils.db_api.commands.balance as bl
 import utils.db_api.commands.user as us
+import utils.db_api.commands.photos as ph
 
 
 @dp.message_handler(Command('set_menu'), user_id=config.ADMINS)
@@ -26,7 +28,7 @@ async def menu_cmd(message: types.Message):
                          'Выберите на клавиатуре то, в чем вы заинтересованы', reply_markup=menu)
 
 
-@dp.message_handler(text='Товары')
+@dp.message_handler(text='🙆Товары')
 async def goods(message: types.Message):
     if await db.check_rows() is True:
         await message.answer('К сожалению, категории пока недоступны.')
@@ -50,7 +52,7 @@ async def user_profile(message: types.Message):
 
 @dp.message_handler(text='Баланс')
 async def user_balance(message: types.Message):
-    pass  # систему с инлайн кнопками
+    await balance_cmd(message)
 
 
 @dp.message_handler(text='Авторизация')
@@ -97,13 +99,25 @@ async def get_good(call: types.CallbackQuery):
         ID = row[3]
         SUM = row[2]
 
+        photo = await ph.get_photo(ID)
+        print(photo)
         keyboard = await buy_goods(ID, SUM)
 
-        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                    text=f'Оформление заказа номер - {random.randint(1000, 1000000)}\n\n'
+        if photo is None or photo == 'None':
+            await bot.send_message(chat_id=call.message.chat.id,
+                                   text=f'Оформление заказа номер - {random.randint(1000, 1000000)}\n\n'
+                                        f'Наименование: {row[0]}\n'
+                                        f'Описание: {row[1]}\n\n'
+                                        f'Цена: {row[2]} RUB\n',
+                                   reply_markup=keyboard)
+        else:
+            await bot.send_photo(chat_id=call.message.chat.id,
+                                 caption=f'Оформление заказа номер - {random.randint(1000, 1000000)}\n\n'
                                          f'Наименование: {row[0]}\n'
                                          f'Описание: {row[1]}\n\n'
-                                         f'Цена: {row[2]} RUB\n', reply_markup=keyboard)
+                                         f'Цена: {row[2]} RUB\n',
+                                 reply_markup=keyboard,
+                                 photo=photo)
 
 
 @dp.callback_query_handler(Text(equals='menu'))
@@ -115,9 +129,8 @@ async def go_back(call: types.CallbackQuery):
 
 @dp.callback_query_handler(Text(equals='back'))
 async def go_category(call: types.CallbackQuery):
-    keyboard = await markup()
-    await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                text='Доступные категории товаров:', reply_markup=keyboard)
+    await bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+
 
 @dp.callback_query_handler(Text(startswith='buy_'))
 async def buy_product(call: types.CallbackQuery):
@@ -138,24 +151,21 @@ async def buy_product(call: types.CallbackQuery):
         amount = rows[4]
 
         new_balance = balance - summa
-        await bl.update_balance(telegram_id=call.message.chat.id, amount=new_balance)
+        await bl.update_for_user(telegram_id=call.message.chat.id, amount=new_balance)
         new_amount = int(amount) - 1
         await db.update_amount(good_id, amount=new_amount)
 
-        await bot.edit_message_text(
+        await bot.send_message(
             chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
             text='Покупка успешно проведена!\n\n'
                  f'Данные: {data}\n'
                  f'Ваш баланс - {new_balance} RUB'
         )
 
     else:
-        await bot.edit_message_text(
+        await bot.send_message(
             chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
             text='Недостаточно средств на балансе.\n'
                  f'Для покупки вам не хватает {summa - balance} RUB\n'
                  f'Чтобы пополнить баланс, перейдите в меню.'
         )
-

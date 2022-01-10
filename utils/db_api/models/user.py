@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, BigInteger, String, sql, DateTime, func
 from sqlalchemy.orm import relationship
 
 from utils.db_api.base import Base
-from utils.db_api.schemas.balance import Balance
+from utils.db_api.models.balance import Balance
 
 
 class User(Base):
