@@ -86,7 +86,7 @@ async def get_info_goods(good_id):
         result = await session.execute(info)
 
         for row in result.scalars():
-            return f'{row.title}:{row.description}:{row.price}:{row.id}:{row.amount}'
+            return f'{row.title}&{row.description}&{row.price}&{row.id}&{row.amount}'
 
 async def get_data_goods(good_id):
     async with async_sessionmaker() as session:
@@ -116,7 +116,7 @@ async def get_all_goods():
         result = await session.execute(data)
 
         for row in result.scalars():
-            array.append(f'{row.id}: {row.category} - {row.title} - {row.description} - {row.price} - {row.amount}')
+            array.append(f'{row.id}| {row.category} - {row.title} - {row.description} - {row.price} - {row.amount}')
         return array
 
 async def delete_goods_id(id: int):

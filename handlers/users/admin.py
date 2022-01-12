@@ -5,6 +5,7 @@ import aiofiles
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.exceptions import BotBlocked, TypeOfFileMismatch
 
 from data import config
@@ -27,18 +28,18 @@ from utils.db_api.commands.user import get_all_users_mailing
 
 @dp.message_handler(Command('login'), user_id=config.ADMINS)
 async def admin_cmd(message: types.Message):
-    await message.answer('Добро пожаловать в VIP-ложу этого бота.\n'
-                         'Нажав на кнопки, вы сможете узнать/добавить необходимое.',
+    await message.answer('👨‍🔧 Добро пожаловать в VIP-ложу этого бота.\n'
+                         '👨‍🎨 Нажав на кнопки, вы сможете узнать/добавить необходимое.',
                          reply_markup=admin)
 
 
-@dp.message_handler(text='Пользователи', user_id=config.ADMINS)
+@dp.message_handler(text='🙋Пользователи', user_id=config.ADMINS)
 async def admin_users(message: types.Message):
-    await message.answer('Выберите необходимую опцию на клавиатуре.',
+    await message.answer('👨‍🔧 Выберите необходимую опцию на клавиатуре.',
                          reply_markup=users)
 
 
-@dp.message_handler(text='Количество', user_id=config.ADMINS)
+@dp.message_handler(text='🖩Количество', user_id=config.ADMINS)
 async def all_users(message: types.Message):
     counter = await us.get_all_users()
     await message.answer(f'На {datetime.date.today()}\n'
@@ -46,15 +47,15 @@ async def all_users(message: types.Message):
                          reply_markup=comeback)
 
 
-@dp.message_handler(text='Товары', user_id=config.ADMINS)
+@dp.message_handler(text='🛍Товары', user_id=config.ADMINS)
 async def admin_goods(message: types.Message):
-    await message.answer('Выберите необходимую опцию на клавиатуре',
+    await message.answer('👨‍🔧 Выберите необходимую опцию на клавиатуре',
                          reply_markup=goods)
 
 
-@dp.message_handler(text='Добавить товар', user_id=config.ADMINS, state=None)
+@dp.message_handler(text='🛍Добавить товар', user_id=config.ADMINS, state=None)
 async def add_goods(message: types.Message):
-    await message.answer('Чтобы добавить товар, отправьте мне следующее:\n'
+    await message.answer('👨‍🔧 Чтобы добавить товар, отправьте мне следующее:\n'
                          '<b>id|категория|название|описание|дата|цена|количество|ссылка на фото (необязательно)</b>\n\n'
                          '<b>Если вы не хотите добавлять фото, то в поле "ссылка на фото" напишите None!</b>\n\n\n'
                          'Пример для заполнения:\n'
@@ -81,13 +82,13 @@ async def state_for_goods(message: types.Message, state: FSMContext):
             pass
         counter += 1
     await message.answer('Успешно!\n'
-                         f'Всего было добавлено товаров - {counter}\n'
-                         f'Через 3 секунды я перенаправлю вас в админ-меню')
+                         f'👨‍🔧 Всего было добавлено товаров - {counter}\n'
+                         f'👨‍🔧 Через 3 секунды я перенаправлю вас в админ-меню')
     time.sleep(3)
     await admin_cmd(message)
 
 
-@dp.message_handler(text='Удалить товар')
+@dp.message_handler(text='🗑Удалить товар')
 async def delete_goods(message: types.Message):
     await insert_txt()
     async with aiofiles.open('goods.txt', mode='rb') as f:
@@ -105,20 +106,20 @@ async def delete_second(message: types.Message, state: FSMContext):
         await gd.delete_goods_id(row)
         counter += 1
     await bot.send_message(message.chat.id, 'Товары успешно удалены.\n'
-                                            f'Всего удалено - {counter} товаров\n\n'
-                                            f'Через 3 секунды я перенаправлю вас в админ-меню')
+                                            f'👨‍🔧 Всего удалено - {counter} товаров\n\n'
+                                            f'👨‍🔧 Через 3 секунды я перенаправлю вас в админ-меню')
     time.sleep(3)
     await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     await admin_cmd(message)
 
 
-@dp.message_handler(text='Изменить цену товара')
+@dp.message_handler(text='📈Изменить цену товара')
 async def edit_price(message: types.Message):
     await UpdatePrice.first()
     await insert_txt()
     async with aiofiles.open('goods.txt', mode='rb') as f:
         await bot.send_document(message.chat.id, f,
-                                caption='Введите ID товара и новую цену для чего <b>ЧЕРЕЗ</b> пробел')
+                                caption='👨‍🔧 Введите ID товара и новую цену для чего <b>ЧЕРЕЗ</b> пробел')
         f.close()
 
 
@@ -131,14 +132,17 @@ async def second_edit_price(message: types.Message, state: FSMContext):
         row = row.split(' ')
         await gd.update_price(int(row[0]), int(row[1]))
         counter += 1
-    await message.answer(f'Отлично! Цена обновлена в {counter} товарах.')
+    await message.answer(f'👨‍🔧 Отлично! Цена обновлена в {counter} товарах.\n'
+                         f'Через 3 секунды я вас перенаправлю в админ-меню')
+    time.sleep(3)
+    await admin_cmd(message)
 
 
-@dp.message_handler(text='Обновить баланс')
+@dp.message_handler(text='📈Обновить баланс')
 async def update_balance(message: types.Message):
     await insert_balance_txt()
     async with aiofiles.open('users.txt', mode='rb') as f:
-        await bot.send_document(message.chat.id, f, caption='Введите TelegramID и Баланс пользователя')
+        await bot.send_document(message.chat.id, f, caption='👨‍🔧 Введите TelegramID и Баланс пользователя')
         f.close()
         await UpdateBalance.first()
 
@@ -152,17 +156,20 @@ async def update_next(message: types.Message, state: FSMContext):
         row = row.split(' ')
         await update_by_user(int(row[0]), int(row[1]))
         time.sleep(2)
-        await message.answer(f'Баланс пользователя с ID {row[0]} успешно пополнен на {row[1]} RUB')
+        await message.answer(f'👨‍🔧 Баланс пользователя с ID {row[0]} успешно пополнен на {row[1]} RUB\n'
+                             f'Через 3 секунды я вас перенаправлю в админ-меню.')
+        time.sleep(3)
+        await admin_cmd(message)
 
 
-@dp.message_handler(text='Рассылка', user_id=config.ADMINS)
+@dp.message_handler(text='🎙Рассылка', user_id=config.ADMINS)
 async def mailing_handler(message: types.Message):
-    await message.answer('Выберите метод рассылки', reply_markup=mailing_keyboard)
+    await message.answer('👨‍🔧 Выберите метод рассылки', reply_markup=mailing_keyboard)
 
 
-@dp.message_handler(text='Сообщение', user_id=config.ADMINS)
+@dp.message_handler(text='🎙Сообщение', user_id=config.ADMINS)
 async def mailing_message(message: types.Message):
-    await message.answer('Хорошо, пришлите мне сообщение для рассылки')
+    await message.answer('👨‍🔧 Хорошо, пришлите мне сообщение для рассылки')
     await Mailing.first()
 
 
@@ -182,14 +189,15 @@ async def mailing_message_state(message: types.Message, state: FSMContext):
         blocked += 1
 
     await message.answer(f'Сообщение было доставлено - {counter} пользователям.\n'
-                         f'Сообщение не получили - {blocked} пользовалей')
+                         f'Сообщение не получили - {blocked} пользовалей\n\n'
+                         f'Через 3 секунды перенесу вас в админ-меню')
+    time.sleep(3)
+    await admin_cmd(message)
 
-
-@dp.message_handler(text='Сообщение с картинкой', content_types=['photo', 'text'])
-async def mailing_photo(message: types.Message, state: FSMContext):
-    await message.answer('Хорошо, отправь мне фото, чтобы получить его ID, затем отправь мне такой шаблон:\n\n'
-                         'File_ID\n'
-                         'text',
+@dp.message_handler(text='🎙Сообщение с картинкой', content_types=['photo', 'text'])
+async def mailing_photo(message: types.Message):
+    await message.answer('👨‍🔧 Хорошо, отправь мне фото, чтобы получить его ID, затем отправь мне такой шаблон:\n\n'
+                         'File_ID&Ваш текст',
                          reply_markup=comeback)
     await Mailing.Picture_get.set()
 
@@ -206,7 +214,7 @@ async def mailing_photo_state(message: types.Message):
 @dp.message_handler(state=Mailing.Picture_send)
 async def mailing_photo_send(message: types.Message, state: FSMContext):
     await state.reset_state()
-    text = message.text.split('\n')
+    text = message.text.split('&')
     rows = await get_all_users_mailing()
     counter = 0
     blocked = 0
@@ -229,12 +237,15 @@ async def mailing_photo_send(message: types.Message, state: FSMContext):
     except BotBlocked:
         blocked += 1
     await message.answer(f'Сообщение было доставлено - {counter} пользователям.\n'
-                         f'Сообщение не получили - {blocked} пользовалей', reply_markup=comeback)
+                         f'Сообщение не получили - {blocked} пользовалей\n\n'
+                         f'Через 3 секунды перенесу вас в админ-меню')
+    time.sleep(3)
+    await admin_cmd(message)
 
 
-@dp.message_handler(text='Голосовое сообщение')
+@dp.message_handler(text='🎙Голосовое сообщение')
 async def mailing_voice_get(message: types.Message):
-    await message.answer('Отправь мне голосовое сообщение')
+    await message.answer('👨‍🔧 Отправь мне голосовое сообщение')
     await Mailing.Voice_get.set()
 
 
@@ -256,12 +267,15 @@ async def mailing_voice_send(message: types.Message, state: FSMContext):
         blocked += 1
 
     await message.answer(f'Сообщение было доставлено - {counter} пользователям.\n'
-                         f'Сообщение не получили - {blocked} пользовалей')
+                         f'Сообщение не получили - {blocked} пользовалей\n\n'
+                         f'Через 3 секунды перенесу вас в админ-меню')
+    time.sleep(3)
+    await admin_cmd(message)
 
 
-@dp.message_handler(text='Видео "кружочек"')
+@dp.message_handler(text='🎙Видео "кружочек"')
 async def mailing_video_get(message: types.Message):
-    await message.answer('Отправьте мне кружочек!', reply_markup=comeback)
+    await message.answer('👨‍🔧 Отправьте мне кружочек!', reply_markup=comeback)
     await Mailing.Video_get.set()
 
 
@@ -279,7 +293,43 @@ async def mailing_video_get(message: types.Message, state: FSMContext):
     except BotBlocked:
         blocked += 1
     await message.answer(f'Сообщение было доставлено - {counter} пользователям.\n'
-                         f'Сообщение не получили - {blocked} пользовалей', reply_markup=comeback)
+                         f'Сообщение не получили - {blocked} пользовалей\n\n'
+                         f'Через 3 секунды перенесу вас в админ-меню')
+    time.sleep(3)
+    await admin_cmd(message)
+
+@dp.message_handler(text='🎙Текст с кнопкой')
+async def mailing_text_ulr(message: types.Message):
+    await message.answer('👨‍🔧 Отправь мне сообщение по шаблону!\n\n'
+                         'Шаблон:\n'
+                         'Ваш текст&Текст на кнопке&URL')
+    await Mailing.Text_Url.set()
+
+
+@dp.message_handler(state=Mailing.Text_Url)
+async def send_text_url(message: types.Message, state: FSMContext):
+    global counter, blocked
+    await state.reset_state()
+    text_with_url = message.text.split('&')
+    rows = await get_all_users_mailing()
+    try:
+        url = InlineKeyboardMarkup(row_width=1)
+        button = InlineKeyboardButton(text=text_with_url[1], url=text_with_url[2])
+        url.add(button)
+        counter = 0
+        blocked = 0
+        for user_id in rows:
+            await bot.send_message(user_id, text_with_url[0], reply_markup=url)
+            counter += 1
+
+    except BotBlocked:
+        blocked += 1
+
+    await message.answer(f'Сообщение было доставлено - {counter} пользователям.\n'
+                         f'Сообщение не получили - {blocked} пользовалей\n\n'
+                         f'Через 3 секунды перенесу вас в админ-меню')
+    time.sleep(3)
+    await admin_cmd(message)
 
 
 @dp.message_handler(text='Вернуться в меню', user_id=config.ADMINS)

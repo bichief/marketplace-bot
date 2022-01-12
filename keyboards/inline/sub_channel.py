@@ -1,9 +1,14 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-sub_channel = InlineKeyboardMarkup(row_width=3,
+from data import config
+
+sub_channel = InlineKeyboardMarkup(row_width=2,
                                    inline_keyboard=[
                                        [
-                                           InlineKeyboardButton(text='Подписаться на канал', url='t.me/bichief'),
-                                           InlineKeyboardButton(text='Проверить подписку', callback_data='check_sub')
+                                            InlineKeyboardButton(text='❕Правила', url=config.URL_RULES)
+                                       ],
+                                       [
+                                           InlineKeyboardButton(text='📍 Подписаться', url=config.URL_CHANNEL),
+                                           InlineKeyboardButton(text='🔍 Проверить', callback_data='check_sub')
                                        ]
                                    ])

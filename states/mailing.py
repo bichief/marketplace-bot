@@ -8,3 +8,4 @@ class Mailing(StatesGroup):
     Voice_get = State()
     Video_get = State()
     Message = State()
+    Text_Url = State()

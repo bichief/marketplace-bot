@@ -10,6 +10,9 @@ IP = env.str("ip")  # Тоже str, но для айпи адреса хоста
 
 QIWI_KEY = env.str('QIWI_KEY')
 
+URL_RULES = 'https://telegra.ph/Pravila-ispolzovaniya-ploshchadki-TinPlace-01-11'
+URL_CHANNEL = 't.me/bichief'
+CHANNEL_ID = '@bichief'
 
 DB_USER = env.str("DB_USER")
 DB_NAME = env.str("DB_NAME")

@@ -2,13 +2,13 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 admin = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     [
-        KeyboardButton(text='Пользователи')
+        KeyboardButton(text='🙋Пользователи')
     ],
     [
-        KeyboardButton(text='Товары')
+        KeyboardButton(text='🛍Товары')
     ],
     [
-        KeyboardButton(text='Рассылка')
+        KeyboardButton(text='🎙Рассылка')
     ],
     [
         KeyboardButton(text='Вернуться в меню')
@@ -17,22 +17,22 @@ admin = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
 
 users = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     [
-        KeyboardButton(text='Количество')
+        KeyboardButton(text='🖩Количество')
     ],
     [
-        KeyboardButton('Обновить баланс')
+        KeyboardButton('📈Обновить баланс')
     ]
 ])
 
 goods = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     [
-        KeyboardButton(text='Добавить товар')
+        KeyboardButton(text='🛍Добавить товар')
     ],
     [
-        KeyboardButton(text='Удалить товар')
+        KeyboardButton(text='🗑Удалить товар')
     ],
     [
-        KeyboardButton(text='Изменить цену товара')
+        KeyboardButton(text='📈Изменить цену товара')
     ]
 ])
 

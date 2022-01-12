@@ -20,23 +20,26 @@ from utils.misc import rate_limit
 async def bot_start(message: types.Message):
     state = await db.add_user(telegram_id=message.chat.id, username=f'@{message.from_user.username}')
     if state is True:
-        await message.answer('Вы уже авторизовались')
+        await message.answer('👨‍🔧 Вы уже ввели /start.')
     else:
         msg = await message.answer('👮‍♀️')
         asyncio.create_task(delete_message(msg, 0.57))
         time.sleep(2)
-        await message.answer(f'🙋Доброго времени суток, {message.from_user.first_name}!\n\n'
-                             f'🙆Для начала работы со мной, вам необходимо <b>ознакомиться с правилами</b> площадки и <b>подписаться</b> на канал.',
+        await message.answer(f'🙋 Здравствуйте, {message.from_user.first_name}!\n'
+                             f'👨‍💻 Перед началом использования бота, необходимо <b>ознакомиться с правилами</b> и <b>подписаться на канал</b>.',
                              reply_markup=on_start)
 
 
 @dp.callback_query_handler(text='rules')
 async def get_rules(call: types.CallbackQuery):
     await bot.edit_message_text(
-        text='правила придумать потом',
+        text='🙆 Для ознакомления с правилами, нажмите на кнопку ниже.\n\n'
+             '<span class="tg-spoiler">👨‍🔧 Сообщение для владельцев iPhone:\n'
+             'для того, чтобы кнопки заработали, введите команду /start еще раз</span>',
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
-        reply_markup=sub_channel
+        reply_markup=sub_channel,
+
     )
 
 
@@ -45,7 +48,7 @@ async def check_sub(call: types.CallbackQuery):
     state = await check_member(user_id=call.message.chat.id)
     if state is True:
         await bot.delete_message(call.message.chat.id, message_id=call.message.message_id)
-        await call.answer('Ваша подписка найдена!')
+        await call.answer('👨‍🔧 Ваша подписка найдена!')
         await menu_cmd(call.message)
     else:
-        await call.answer(call.message.chat.id, 'Ваша подписка не найдена!')
+        await call.answer(call.message.chat.id, '👨‍🔧 Ваша подписка не найдена!')

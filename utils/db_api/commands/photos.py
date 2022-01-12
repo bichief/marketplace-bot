@@ -2,7 +2,6 @@ import random
 from sqlalchemy import select
 
 from utils.db_api.base import async_sessionmaker
-from utils.db_api.models.goods import Goods
 from utils.db_api.models.photo import GoodsPhoto
 
 
