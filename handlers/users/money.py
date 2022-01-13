@@ -53,7 +53,6 @@ async def final_edit(message: types.Message):
     text = '☐☐'
 
     square = '☐'
-    nothing = '123'
     seconds = 1.5
 
     for i in range(5):
