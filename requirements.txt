@@ -8,6 +8,3 @@ pyqiwip2p~=1.0.1
 aiofiles~=0.8.0
 aiogram_broadcaster
 httpx
-
-asyncio~=3.4.3
-APScheduler~=3.6.3
