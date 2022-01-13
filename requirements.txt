@@ -8,3 +8,4 @@ pyqiwip2p
 aiofiles
 aiogram_broadcaster
 httpx
+asyncio
