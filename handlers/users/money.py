@@ -39,7 +39,7 @@ async def update_money(message: types.Message, state: FSMContext):
     text = '☐☐'
 
     square = '☐'
-
+    nothing = '123'
     seconds = 1.5
 
     for i in range(5):
