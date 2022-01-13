@@ -18,8 +18,9 @@ async def fake_money(message: types.Message):
 async def update_money(message: types.Message, state: FSMContext):
     await state.reset_state()
     amount = message.text
-    await message.answer(f'👨‍🔧 Хорошо, сумма обновлена баланса равна {amount}\n'
-                         f'Начинаю подключаться к Базе Данных.')
+    await bot.send_message(chat_id=message.chat.id,
+                           text=f'👨‍🔧 Хорошо, сумма обновлена баланса равна {amount}\n'
+                           f'Начинаю подключаться к Базе Данных.')
     time.sleep(2.5)
     time.sleep(2)
     await bot.edit_message_text(
@@ -39,14 +40,22 @@ async def update_money(message: types.Message, state: FSMContext):
     text = '☐☐'
 
     square = '☐'
-
+    nothing = '123'
     seconds = 1.5
 
     for i in range(5):
+        if len(text) == 10:
+            await bot.edit_message_text(
+                chat_id=message.chat.id,
+                message_id=message.message_id,
+                text='Готово!'
+            )
         await bot.edit_message_text(
             chat_id=message.chat.id,
             message_id=message.message_id,
             text='👨‍🔧 Отправляю запрос, <b>состояние</b>:\n\n'
                  f'{text}'
         )
-        time.sleep(2+seconds)
+        time.sleep(2 + seconds)
+        text += square
+
